@@ -20,8 +20,9 @@ export default class TodoList extends Component {
         todos.push(this.state.todo);
 		this.setState({
             todos: todos,
-            refresh: !this.state.refresh
+            refresh: !this.state.refresh,
         });
+        this.textInput.clear();
 	}
 	removeTodo = (item) => {
 	    let todos = this.state.todos;
@@ -35,6 +36,7 @@ export default class TodoList extends Component {
 		return (
             <ScrollView>
             <TextInput style = {styles.input}
+               ref={input => { this.textInput = input }}
                underlineColorAndroid = "transparent"
                placeholder = "add todo item ......"
                onChangeText = {(todo) => this.setState({todo})}/>
@@ -42,15 +44,13 @@ export default class TodoList extends Component {
             <List containerStyle={{marginBottom: 20}}>
             {
                 this.state.todos.map((todo) => (
-                    <View key={todo} style={{flexDirection: 'row'}}>
-                        <Text key={todo}>{todo}</Text>
-                        <View style={{alignSelf: 'flex-end'}}>
+                    <View key={todo}>
+                        <Text style = {styles.todoText} key={todo}>{todo}</Text>
                         <Button
                             onPress={() => this.removeTodo(todo)}
                             title="remove"
                             color="red"
                         />
-                        </View>
                     </View>
                 ))
             }
@@ -64,5 +64,9 @@ const styles = StyleSheet.create({
     input: {
        margin: 10,
        height: 40
+    },
+    todoText: {
+        fontSize: 20,
+        fontWeight: 'bold',
     }
  })

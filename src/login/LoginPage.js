@@ -8,24 +8,36 @@ export default class LoginPage extends Component {
         super();
         this.state = {
             email: '',
-            password: ''
+            password: '',
+			isValid: true
         }
 	}
     login = () => {
-    	this.props.navigation.navigate('Dashboard', this.state);
+		if(this.state.email === '' || 
+			this.state.password === '') {
+			this.setState({
+				isValid: false
+			})
+		} else if(this.state.email === this.state.password) {
+			this.props.navigation.navigate('Dashboard', this.state);
+		} else {
+			alert('user name and password must be same');
+		}
     }
     render() {
         return (
 			<ScrollView>
 				<FormLabel>User Name</FormLabel>
 				<FormInput onChangeText={(email) => this.setState({email})}/>
-				<FormValidationMessage>{this.state.email ? '' : 'email is required'}</FormValidationMessage>
+				<FormValidationMessage>{(this.state.isValid || this.state.email) ? '' : 'email is required'}</FormValidationMessage>
 				<FormLabel>Password</FormLabel>
-				<FormInput onChangeText={(password) => this.setState({password})}/>
-				<FormValidationMessage>{this.state.password ? '' : 'password is required'}</FormValidationMessage>
+				<FormInput secureTextEntry={true} onChangeText={(password) => this.setState({password})}/>
+				<FormValidationMessage>{(this.state.isValid || this.state.password) ? '' : 'password is required'}</FormValidationMessage>
 				<Button
+					color="#ffffff"
+					backgroundColor="blue"
 					small
-					title='Submit'
+					title='Login'
 					onPress={this.login} />
 			</ScrollView>
         )

@@ -9,20 +9,40 @@ export const Arrow = createStackNavigator({
 	LoginPage : { 
 		screen : LoginPage,
 		navigationOptions: {
-			title: 'login'
+			title: 'login',
+			headerTintColor: '#ffffff',
+			headerStyle: {
+				backgroundColor: '#1d7110'
+			},
+			headerTitleStyle: {
+				fontSize: 18,
+			}
 		} 
 	},
 	Dashboard : { 
 		screen : Dashboard ,
 		navigationOptions : ({ navigation }) => ({
 			title: 'Welcome '+navigation.state.params.email,
-			fontSize: 40
+			headerTintColor: '#ffffff',
+			headerStyle: {
+				backgroundColor: '#1d7110'
+			},
+			headerTitleStyle: {
+				fontSize: 18,
+			}
 		})
 	},
 	NewUser : { 
 		screen : NewUser,
 		navigationOptions: {
-			title: 'signup'
+			title: 'signup',
+			headerTintColor: '#ffffff',
+			headerStyle: {
+				backgroundColor: '#1d7110'
+			},
+			headerTitleStyle: {
+				fontSize: 18,
+			}
 		} 
 	},
 });

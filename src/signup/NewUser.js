@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { Button, FormLabel, FormInput, FormValidationMessage, Text } from 'react-native-elements';
 
 
@@ -9,28 +9,39 @@ export default class NewUser extends React.Component {
   this.state = {
       name: '',
       email: '',
-      password: ''
+      password: '',
+      isValid: true
     }
   }
 
   submit = () => {
-    this.props.navigation.navigate('LoginPage');
+    if(this.state.name === '' || 
+      this.state.email === '' || 
+      this.state.password === '') {
+      this.setState({
+          isValid: false
+      })
+    } else {
+      this.props.navigation.navigate('LoginPage');
+    }
   }
 
   render() {
     return (
       <ScrollView>
-        <Text h3>create an account</Text>
+        <Text style = {styles.heading}>create an account</Text>
         <FormLabel>Name</FormLabel>
         <FormInput onChangeText={(name) => this.setState({name})}/>
-        <FormValidationMessage>{this.state.name ? '' : 'name is required'}</FormValidationMessage>
+        <FormValidationMessage>{(this.state.isValid || this.state.name) ? '' : 'name is required'}</FormValidationMessage>
         <FormLabel>Email</FormLabel>
         <FormInput onChangeText={(email) => this.setState({email})}/>
-        <FormValidationMessage>{this.state.email ? '' : 'email is required'}</FormValidationMessage>
+        <FormValidationMessage>{(this.state.isValid || this.state.email) ? '' : 'email is required'}</FormValidationMessage>
         <FormLabel>Password</FormLabel>
-        <FormInput onChangeText={(password) => this.setState({password})}/>
-        <FormValidationMessage>{this.state.password ? '' : 'password is required'}</FormValidationMessage>
+        <FormInput secureTextEntry={true} onChangeText={(password) => this.setState({password})}/>
+        <FormValidationMessage>{(this.state.isValid || this.state.password) ? '' : 'password is required'}</FormValidationMessage>
         <Button
+          color="#ffffff"
+          backgroundColor="blue"
           small
           title='Submit'
           onPress={this.submit} />
@@ -38,3 +49,11 @@ export default class NewUser extends React.Component {
     );
   }
 }
+
+const styles = StyleSheet.create({
+  heading: {
+    margin: 10,
+    fontSize: 20,
+    fontWeight: 'bold',
+  }
+})
