@@ -1,10 +1,10 @@
 import React from 'react';
-import LoginPage from './src/Login/LoginPage';
+import { Tabs } from './src/header/NavigationHeader';
 
 export default class App extends React.Component {
   render() {
     return (
-        <LoginPage />
+        <Tabs />
     );
   }
 }
