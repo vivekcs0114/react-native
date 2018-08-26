@@ -1,10 +1,10 @@
 import React from 'react';
-import { Tabs } from './src/header/NavigationHeader';
+import PhoneAuthTest from './src/login/PhoneAuthTest';
 
 export default class App extends React.Component {
   render() {
     return (
-        <Tabs />
+        <PhoneAuthTest />
     );
   }
 }
