@@ -1,88 +1,16 @@
 import React, { Component } from 'react';
-import firebase from 'firebase';
-
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Platform,
-  Alert
-} from 'react-native';
-
-import Frisbee from 'frisbee';
+import { Text, TextInput, TouchableOpacity, View, Platform, Alert } from 'react-native';
+import axios from 'axios';
 import Spinner from 'react-native-loading-spinner-overlay';
 import Form from 'react-native-form';
 import CountryPicker from 'react-native-country-picker-modal';
+import ThankYouPage from '../user/ThankYouPage';
+import { XAUTHY_API_KEY } from '../constants/Constants';
+import { styles } from './VerificationCss';
 
 const MAX_LENGTH_CODE = 6;
-
-// if you want to customize the country picker
 const countryPickerCustomStyles = {};
-
-// your brand's theme primary color
 const brandColor = '#744BAC';
-
-const styles = StyleSheet.create({
-  countryPicker: {
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  container: {
-    flex: 1
-  },
-  header: {
-    textAlign: 'center',
-    marginTop: 60,
-    fontSize: 22,
-    margin: 20,
-    color: '#4A4A4A',
-  },
-  form: {
-    margin: 20
-  },
-  textInput: {
-    padding: 0,
-    margin: 0,
-    flex: 1,
-    fontSize: 20,
-    color: brandColor
-  },
-  button: {
-    marginTop: 20,
-    height: 50,
-    backgroundColor: brandColor,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold'
-  },
-  wrongNumberText: {
-    margin: 10,
-    fontSize: 14,
-    textAlign: 'center'
-  },
-  disclaimerText: {
-    marginTop: 30,
-    fontSize: 12,
-    color: 'grey'
-  },
-  callingCodeView: {
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  callingCodeText: {
-    fontSize: 20,
-    color: brandColor,
-    fontWeight: 'bold',
-    paddingRight: 10
-  }
-});
 
 export default class MobileVerification extends Component {
 
@@ -91,6 +19,7 @@ export default class MobileVerification extends Component {
     this.state = {
       enterCode: false,
       spinner: false,
+      isVerified: false,
       country: {
         cca2: 'US',
         callingCode: '1'
@@ -99,36 +28,35 @@ export default class MobileVerification extends Component {
   }
 
   _getCode = () => {
-
     this.setState({ spinner: true });
     setTimeout(async () => {
-    try {
-        const recaptchaVerifier = new firebase.auth.RecaptchaVerifier('sign-in-button', {
-            'size': 'invisible',
-            'callback': function(response) {
-                onSignInSubmit();
-            }
+      try {
+        let data = JSON.stringify({
+          api_key: XAUTHY_API_KEY,
+          via: "sms",
+          phone_number:this.refs.form.getValues().phoneNumber,
+          country_code:this.state.country.callingCode
+        })
+        const res = await axios.post('https://api.authy.com/protected/json/phones/verification/start',
+          data, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
         });
-        var phoneNumber = "9112363432";
-        var appVerifier = recaptchaVerifier;
-        firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
-            .then(function (confirmationResult) {
-            this.setState({
-            spinner: false,
-            enterCode: true,
-            verification: res.body
-            });
-            this.refs.form.refs.textInput.setNativeProps({ text: '' });
-            setTimeout(() => {
-            Alert.alert('Sent!', "We've sent you a verification code", [{
-                text: 'OK',
-                onPress: () => this.refs.form.refs.textInput.focus()
-            }]);
-            }, 100);
-            }).catch(function (error) {
-            throw error;
+        if (res.err) throw res.err;
+        this.setState({
+          spinner: false,
+          enterCode: true,
+          verification: res.body
         });
-    } catch (err) {
+        this.refs.form.refs.textInput.setNativeProps({ text: '' });
+        setTimeout(() => {
+          Alert.alert('Sent!', "We've sent you a verification code", [{
+            text: 'OK',
+            onPress: () => this.refs.form.refs.textInput.focus()
+          }]);
+        }, 100);
+      } catch (err) {
         this.setState({ spinner: false });
         setTimeout(() => {
           Alert.alert('Oops!', err.message);
@@ -138,39 +66,34 @@ export default class MobileVerification extends Component {
   }
 
   _verifyCode = () => {
-
     this.setState({ spinner: true });
-
     setTimeout(async () => {
-
       try {
-
-        const res = await api.put('/v1/verifications', {
-          body: {
-            ...this.refs.form.getValues(),
-            ...this.state.country
+        let config = {
+          headers: {
+            "X-Authy-API-Key": XAUTHY_API_KEY
+          },
+          params: {
+            phone_number: this.refs.form.getValues().phoneNumber,
+            country_code: this.state.country.callingCode,
+            verification_code: this.refs.form.getValues().code
           }
-        });
-
+        }
+        const res = await axios.get('https://api.authy.com/protected/json/phones/verification/check',
+         config);
         if (res.err) throw res.err;
-
         this.refs.form.refs.textInput.blur();
-        // <https://github.com/niftylettuce/react-native-loading-spinner-overlay/issues/30#issuecomment-276845098>
-        this.setState({ spinner: false });
+        this.setState({ spinner: false , isVerified: true});
         setTimeout(() => {
           Alert.alert('Success!', 'You have successfully verified your phone number');
         }, 100);
-
       } catch (err) {
-        // <https://github.com/niftylettuce/react-native-loading-spinner-overlay/issues/30#issuecomment-276845098>
         this.setState({ spinner: false });
         setTimeout(() => {
           Alert.alert('Oops!', err.message);
         }, 100);
       }
-
     }, 100);
-
   }
 
   _onChangeText = (val) => {
@@ -195,7 +118,6 @@ export default class MobileVerification extends Component {
   }
 
   _renderFooter = () => {
-
     if (this.state.enterCode)
       return (
         <View>
@@ -204,22 +126,18 @@ export default class MobileVerification extends Component {
           </Text>
         </View>
       );
-
     return (
       <View>
         <Text style={styles.disclaimerText}>By tapping "Send confirmation code" above, we will send you an SMS to confirm your phone number. Message &amp; data rates may apply.</Text>
       </View>
     );
-
   }
 
   _renderCountryPicker = () => {
-
     if (this.state.enterCode)
       return (
         <View />
       );
-
     return (
       <CountryPicker
         ref={'countryPicker'}
@@ -230,26 +148,21 @@ export default class MobileVerification extends Component {
         styles={countryPickerCustomStyles}
         translation='eng'/>
     );
-
   }
 
   _renderCallingCode = () => {
-
     if (this.state.enterCode)
       return (
         <View />
       );
-
     return (
       <View style={styles.callingCodeView}>
         <Text style={styles.callingCodeText}>+{this.state.country.callingCode}</Text>
       </View>
     );
-
   }
 
   render() {
-
     let headerText = `What's your ${this.state.enterCode ? 'verification code' : 'phone number'}?`
     let buttonText = this.state.enterCode ? 'Verify confirmation code' : 'Send confirmation code';
     let textStyle = this.state.enterCode ? {
@@ -257,24 +170,17 @@ export default class MobileVerification extends Component {
       textAlign: 'center',
       fontSize: 40,
       fontWeight: 'bold',
-      fontFamily: 'Courier'
     } : {};
-
     return (
-
       <View style={styles.container}>
-
+      {this.state.isVerified ? <ThankYouPage /> :
+      <View>
         <Text style={styles.header}>Welcome, {this.props.user}</Text>
-
         <Text style={styles.header}>{headerText}</Text>
-
         <Form ref={'form'} style={styles.form}>
-
           <View style={{ flexDirection: 'row' }}>
-
             {this._renderCountryPicker()}
             {this._renderCallingCode()}
-
             <TextInput
               ref={'textInput'}
               name={this.state.enterCode ? 'code' : 'phoneNumber' }
@@ -292,24 +198,19 @@ export default class MobileVerification extends Component {
               selectionColor={brandColor}
               maxLength={this.state.enterCode ? 6 : 20}
               onSubmitEditing={this._getSubmitAction} />
-
           </View>
-
           <TouchableOpacity style={styles.button} onPress={this._getSubmitAction}>
             <Text style={styles.buttonText}>{ buttonText }</Text>
           </TouchableOpacity>
-
           {this._renderFooter()}
-
         </Form>
-
         <Spinner
           visible={this.state.spinner}
           textContent={'One moment...'}
           textStyle={{ color: '#fff' }} />
-
+        </View>
+      }
       </View>
-
     );
   }
 }

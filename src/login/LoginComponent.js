@@ -3,6 +3,7 @@ import { ScrollView, View, Text } from 'react-native';
 import { Button } from 'react-native-elements';
 import Expo from 'expo';
 import MobileVerification from './MobileVerification';
+import { G_CLIENT_ID } from '../constants/Constants';
 
 export default class LoginComponent extends Component {
 
@@ -16,15 +17,15 @@ export default class LoginComponent extends Component {
 	signInWithGoogleAsync = async () => {
 		try {
 			const result = await Expo.Google.logInAsync({
-			androidClientId: YOUR_CLIENT_ID_HERE,
+			androidClientId: G_CLIENT_ID,
 			scopes: ['profile', 'email'],
 		});
-
 		if (result.type === 'success') {
 			this.setState({
 				signedIn: true,
 				email: result.user.name
 			});
+			console.log('success');
 		} else {
 			console.log("cancelled");
 		}

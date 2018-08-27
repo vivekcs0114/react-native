@@ -1,10 +1,10 @@
 import React from 'react';
-import PhoneAuthTest from './src/login/PhoneAuthTest';
+import LoginComponent from './src/login/LoginComponent';
 
 export default class App extends React.Component {
   render() {
     return (
-        <PhoneAuthTest />
+        <LoginComponent />
     );
   }
 }
